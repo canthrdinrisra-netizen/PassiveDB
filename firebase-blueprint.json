@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and budget preferences",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User Gmail address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name of the user"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar URL"
+        },
+        "monthlyBudget": {
+          "type": "number",
+          "description": "Monthly budget target"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account creation timestamp"
+        }
+      },
+      "required": ["email"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Income or expense financial record",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase user UID",
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of transaction",
+          "enum": ["income", "expense"]
+        },
+        "amount": {
+          "type": "number",
+          "description": "Monetary amount in THB"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category name",
+          "maxLength": 64
+        },
+        "description": {
+          "type": "string",
+          "description": "Note or note details",
+          "maxLength": 200
+        },
+        "date": {
+          "type": "string",
+          "description": "Transaction date in YYYY-MM-DD format",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Record creation time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Record last update time"
+        }
+      },
+      "required": ["userId", "type", "amount", "category", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores user settings and profile info"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Stores individual income and expense records belonging to a user"
+    }
+  }
+}

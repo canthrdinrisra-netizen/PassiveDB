@@ -1,0 +1,6 @@
+{
+  "name": "ระบบจัดการรายรับรายจ่าย",
+  "description": "ระบบบันทึกและจัดการรายรับรายจ่าย วิทยาลัยอาชีวศึกษาแพร่ สรุปผลรายเดือน พร้อมกราฟวิเคราะห์ข้อมูล และจัดเก็บข้อมูลบน Firebase (PassiveDB)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

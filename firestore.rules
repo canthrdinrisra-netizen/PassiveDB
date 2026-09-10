@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.email is string &&
+             data.email.size() > 0 &&
+             data.email.size() <= 256 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 512)) &&
+             (!('monthlyBudget' in data) || (data.monthlyBudget is number && data.monthlyBudget >= 0 && data.monthlyBudget <= 1000000000));
+    }
+
+    function isValidTransaction(data) {
+      return data.userId is string &&
+             data.userId.size() <= 128 &&
+             (data.type == 'income' || data.type == 'expense') &&
+             data.amount is number &&
+             data.amount > 0 &&
+             data.amount <= 1000000000 &&
+             data.category is string &&
+             data.category.size() > 0 &&
+             data.category.size() <= 64 &&
+             data.date is string &&
+             data.date.size() == 10 &&
+             data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 200));
+    }
+
+    // User profile document
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUserProfile(incoming());
+      allow delete: if false;
+
+      // Transactions subcollection
+      match /transactions/{transactionId} {
+        allow get, delete: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidTransaction(incoming()) &&
+                         incoming().userId == request.auth.uid;
+        allow update: if isOwner(userId) &&
+                         isValidTransaction(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         (!('createdAt' in existing()) || incoming().createdAt == existing().createdAt);
+      }
+    }
+  }
+}
